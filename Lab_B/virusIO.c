@@ -96,7 +96,7 @@ int magicNumber(FILE* file) {
 
 typedef struct link
 {
-    link* nextVirus;
+    struct link* nextVirus;
     virus *vir;
 } link;
 
@@ -141,7 +141,8 @@ void list_free(link* virus_list){
 
 int main() {
     link* virus_list = NULL;
-    FILE* inspectedFile = NULL;
+    char buffer[10000];
+    char fileName[256];
     char choice[10];
 
     while (1) {
@@ -162,9 +163,8 @@ int main() {
             printf("Enter signatures file name: ");
             fgets(filename, sizeof(filename), stdin);
             filename[strcspn(filename, "\n")] = '\0';  // strip newline
-
             FILE* f = fopen(filename, "rb");
-            if (!f) { perror("Cannot open file"); continue; }
+            if (!f) { fprintf(stderr, "Cannot open file\n"); continue; }
 
             if (!magicNumber(f)) {
                fclose(f);
@@ -185,23 +185,25 @@ int main() {
             list_print(virus_list, stdout);
 
         } else if (c == 'S') {
-            char filename[256];
-            printf("Enter file to inspect: ");
-            fgets(filename, sizeof(filename), stdin);
-            filename[strcspn(filename, "\n")] = '\0';
-            if (inspectedFile) fclose(inspectedFile);
-            inspectedFile = fopen(filename, "rb");
-            if (!inspectedFile) perror("Cannot open file");
+            printf("Enter File Name: ");
+            fgets(fileName, sizeof(fileName), stdin);
+            fileName[strcspn(fileName, "\n")] = '\0';
+            printf("File selected\n\n");
 
         } else if (c == 'D') {
-            printf("Not implemented\n");
+            if (!fileName) fprintf(stderr, "No file has been selected");
+            FILE* f = fopen(fileName, "r");
+            if (!f) printf(stderr, "Cannot read the file");
+            fread(buffer, 1, sizeof(buffer), f);
+            
+            
 
         } else if (c == 'F') {
             printf("Not implemented\n");
 
         } else if (c == 'Q') {
             list_free(virus_list);
-            if (inspectedFile) fclose(inspectedFile);
+             // if (inspectedFile) fclose(inspectedFile);
             break;
         }
     }
