@@ -138,11 +138,34 @@ void list_free(link* virus_list){
     }
 }
 
+/* ----------------- 1C - Detecting the Virus -----------------*/
+void detect_virus(char* buffer, unsigned int size, link* virus_list) {
+    for (unsigned int i = 0; i < size; i++) {
+        
+        link* current_link = virus_list;
+        while (current_link != NULL) {
+            virus* v = current_link->vir;
+
+            if (i + v->SigSize <= size) {
+                
+                if (memcmp(buffer + i, v->Sig, v->SigSize) == 0) {
+                    printf("Virus detected!\n");
+                    printf("Location (offset): %u\n", i, i);
+                    printf("Virus name: %s\n", v->VirusName);
+                    printf("Signature size: %hu\n", v->SigSize);
+                    printf("-----------------------------------\n");
+                }
+            }
+            current_link = current_link->nextVirus;
+        }
+    }
+}
+
 
 int main() {
     link* virus_list = NULL;
     char buffer[10000];
-    char fileName[256];
+    char fileInspectName[256];
     char choice[10];
 
     while (1) {
@@ -186,24 +209,21 @@ int main() {
 
         } else if (c == 'S') {
             printf("Enter File Name: ");
-            fgets(fileName, sizeof(fileName), stdin);
-            fileName[strcspn(fileName, "\n")] = '\0';
+            fgets(fileInspectName, sizeof(fileInspectName), stdin);
+            sscanf(fileInspectName, "%s", fileInspectName); // erasing \n
             printf("File selected\n\n");
-
         } else if (c == 'D') {
-            if (!fileName) fprintf(stderr, "No file has been selected");
-            FILE* f = fopen(fileName, "r");
-            if (!f) printf(stderr, "Cannot read the file");
-            fread(buffer, 1, sizeof(buffer), f);
-            
-            
+            if (fileInspectName[0] == '\0') fprintf(stderr, "No file has been selected");
+            FILE* f = fopen(fileInspectName, "rb");
+            if (!f) fprintf(stderr, "Cannot read the file");
+            int size = fread(buffer, 1, sizeof(buffer), f);
+            detect_virus(buffer, size, virus_list);
 
         } else if (c == 'F') {
             printf("Not implemented\n");
 
         } else if (c == 'Q') {
             list_free(virus_list);
-             // if (inspectedFile) fclose(inspectedFile);
             break;
         }
     }
